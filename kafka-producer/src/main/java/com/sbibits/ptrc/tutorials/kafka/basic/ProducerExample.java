@@ -1,4 +1,4 @@
-package com.sbibits.ptrc.tutorials.kafka;
+package com.sbibits.ptrc.tutorials.kafka.basic;
 
 
 
