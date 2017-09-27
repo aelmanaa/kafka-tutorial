@@ -58,7 +58,7 @@ public class StockPriceKafkaProducer {
   private static List<StockSender> getStockSenderList(Producer<String, StockPrice> producer) {
     return Lists.list(
         new StockSender(StockAppConstants.TOPIC, new StockPrice("IBM", 100, 99),
-            new StockPrice("IBM", 50, 10), producer, 1, 3),
+            new StockPrice("IBM", 50, 10), producer, 100, 300),
         new StockSender(StockAppConstants.TOPIC, new StockPrice("SUN", 100, 99),
             new StockPrice("IBM", 50, 10), producer, 1, 3),
         new StockSender(StockAppConstants.TOPIC, new StockPrice("APPLE", 100, 99),
@@ -76,13 +76,51 @@ public class StockPriceKafkaProducer {
         new StockSender(StockAppConstants.TOPIC, new StockPrice("KFC", 100, 99),
             new StockPrice("KFC", 50, 10), producer, 1, 3),
         new StockSender(StockAppConstants.TOPIC, new StockPrice("MIU", 100, 99),
-            new StockPrice("MIU", 50, 10), producer, 1, 3));
+            new StockPrice("MIU", 50, 10), producer, 1, 3),
+        new StockSender(StockAppConstants.TOPIC, new StockPrice("UBER", 100, 99),
+            new StockPrice("UBER", 50, 10), producer, 1, 3));
   }
 
   private static Producer<String, StockPrice> createProducer() {
     final Properties props = new Properties();
     setupBootstrapAndSerializers(props);
+    setupBatchingAndCompression(props);
+    setupRetriesInFlightTimeout(props);
+    // Set number of acknowledgments - acks - default is all
+    props.put(ProducerConfig.ACKS_CONFIG, "all");
+
+    // Install interceptor list - config "interceptor.classes"
+    props.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, StockProducerInterceptor.class.getName());
+
+    props.put("importantStocks", "IBM");
+    props.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, StockPricePartitioner.class.getName());
     return new KafkaProducer<>(props);
+  }
+
+  private static void setupRetriesInFlightTimeout(Properties props) {
+    // Only two in-flight messages per Kafka broker connection
+    // - max.in.flight.requests.per.connection (default 5)
+    props.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 1);
+    // Set the number of retries - retries
+    props.put(ProducerConfig.RETRIES_CONFIG, 3);
+
+    // Request timeout - request.timeout.ms
+    props.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 15_000);
+
+    // Only retry after one second.
+    props.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, 1_000);
+
+  }
+
+  private static void setupBatchingAndCompression(Properties props) {
+    // If 0, it turns the batching off.
+    props.put(ProducerConfig.BATCH_SIZE_CONFIG, 10_240);
+    // turns linger on and allows us to batch for 10 ms if size is not met
+    props.put(ProducerConfig.LINGER_MS_CONFIG, 1000);
+
+    // Use Snappy compression for batch compression
+    // props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+
   }
 
   private static void setupBootstrapAndSerializers(Properties props) {
@@ -92,5 +130,7 @@ public class StockPriceKafkaProducer {
 
     // Custom Serializer - config "value.serializer"
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StockPriceSerializer.class.getName());
+
+
   }
 }
