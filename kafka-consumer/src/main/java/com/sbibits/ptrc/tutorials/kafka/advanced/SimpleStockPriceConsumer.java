@@ -9,8 +9,11 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimpleStockPriceConsumer {
+  private static final Logger logger = LoggerFactory.getLogger(SimpleStockPriceConsumer.class);
 
   public static void main(String... args) throws Exception {
     runConsumer();
@@ -50,7 +53,7 @@ public class SimpleStockPriceConsumer {
     } finally {
       consumer.close();
     }
-    System.out.println("DONE");
+    logger.info("DONE");
   }
 
   private static Consumer<String, StockPrice> createConsumer() {
@@ -82,10 +85,10 @@ public class SimpleStockPriceConsumer {
    */
   private static void displayRecordsStatsAndStocks(final Map<String, StockPrice> stockPriceMap,
       final ConsumerRecords<String, StockPrice> consumerRecords) {
-    System.out.printf("New ConsumerRecords par count %d count %d\n",
-        consumerRecords.partitions().size(), consumerRecords.count());
+    logger.debug("New ConsumerRecords par count %d count %d\n", consumerRecords.partitions().size(),
+        consumerRecords.count());
     stockPriceMap.forEach((s, stockPrice) -> System.out.printf("ticker %s price %d.%d \n",
         stockPrice.getName(), stockPrice.getDollars(), stockPrice.getCents()));
-    System.out.println();
+    logger.debug("");
   }
 }
