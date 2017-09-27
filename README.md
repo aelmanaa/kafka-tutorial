@@ -8,3 +8,5 @@ Files are created under package com.sbibits.ptrc.tutorials.kafka.advanced:
 * StockAppConstants - holds topic and broker list
 * StockPriceSerializer - can serialize a StockPrice into byte[]
 * StockSender - generates somewhat random stock prices for a given StockPrice name, Runnable, 1 thread per StockSender and shows using KafkaProducer from many threads
+##Avro
+Tutorial based "UNDERSTANDING APACHE AVRO: AVRO INTRODUCTION FOR BIG DATA AND DATA STREAMING ARCHITECTURES" [Cloudurable Avro](http://cloudurable.com/blog/avro/index.html)
